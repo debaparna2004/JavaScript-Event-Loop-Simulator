@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Loop Simulator UI</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+      padding: 16px;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    textarea {
+      flex: 1;
+      background: #020617;
+      color: #e2e8f0;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      resize: none;
+      font-family: monospace;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #38bdf8;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .panel {
+      display: flex;
+      gap: 10px;
+    }
+
+    .box {
+      flex: 1;
+      background: #020617;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .box h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .item {
+      background: #38bdf8;
+      color: black;
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .output {
+      background: #020617;
+      border-radius: 10px;
+      padding: 10px;
+      height: 120px;
+      overflow-y: auto;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Code Editor -->
+    <div class="card">
+      <h2>Code Editor</h2>
+      <textarea id="code">console.log("Start");
+setTimeout(() => console.log("Task Queue"), 0);
+Promise.resolve().then(() => console.log("Microtask"));
+console.log("End");</textarea>
+      <button onclick="runSimulation()">Run</button>
+    </div>
+
+    <!-- Output -->
+    <div class="card">
+      <h2>Console Output</h2>
+      <div id="output" class="output"></div>
+    </div>
+
+    <!-- Event Loop Visuals -->
+    <div class="card">
+      <h2>Event Loop</h2>
+      <div class="panel">
+        <div class="box">
+          <h3>Call Stack</h3>
+          <div id="callStack"></div>
+        </div>
+        <div class="box">
+          <h3>Microtask Queue</h3>
+          <div id="microtaskQueue"></div>
+        </div>
+        <div class="box">
+          <h3>Task Queue</h3>
+          <div id="taskQueue"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function clearUI() {
+      document.getElementById("output").innerHTML = "";
+      document.getElementById("callStack").innerHTML = "";
+      document.getElementById("microtaskQueue").innerHTML = "";
+      document.getElementById("taskQueue").innerHTML = "";
+    }
+
+    function log(msg) {
+      const out = document.getElementById("output");
+      out.innerHTML += msg + "<br>";
+    }
+
+    function push(container, text) {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerText = text;
+      document.getElementById(container).appendChild(el);
+    }
+
+    function runSimulation() {
+      clearUI();
+
+      const code = document.getElementById("code").value;
+
+      // Fake event loop tracking
+      const originalLog = console.log;
+      console.log = function(msg) {
+        log(msg);
+      };
+
+      // Track call stack (very basic)
+      push("callStack", "global()");
+
+      // Monkey patch setTimeout
+      const originalSetTimeout = window.setTimeout;
+      window.setTimeout = function(cb, time) {
+        push("taskQueue", "setTimeout callback");
+        return originalSetTimeout(() => {
+          push("callStack", "task()");
+          cb();
+        }, time);
+      };
+
+      // Monkey patch Promise.then
+      const originalThen = Promise.prototype.then;
+      Promise.prototype.then = function(cb) {
+        push("microtaskQueue", "promise callback");
+        return originalThen.call(this, () => {
+          push("callStack", "microtask()");
+          cb();
+        });
+      };
+
+      try {
+        eval(code);
+      } catch (e) {
+        log("Error: " + e.message);
+      }
+
+      // restore
+      console.log = originalLog;
+      window.setTimeout = originalSetTimeout;
+      Promise.prototype.then = originalThen;
+    }
+  </script>
+</body>
+</html>
