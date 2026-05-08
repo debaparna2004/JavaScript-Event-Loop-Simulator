@@ -47,10 +47,3 @@ git clone https://github.com/debaparna2004/JavaScript-Event-Loop-Simulator.git
 - Speed controls
 - Custom code execution
 
-## Project Goal
-
-This project was built to strengthen JavaScript fundamentals and visualize one of the most important concepts asked in frontend interviews.
-
-## Author
-
-Debaparna Ghosh
