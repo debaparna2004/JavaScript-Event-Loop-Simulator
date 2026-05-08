@@ -47,3 +47,6 @@ git clone https://github.com/debaparna2004/JavaScript-Event-Loop-Simulator.git
 - Speed controls
 - Custom code execution
 
+## Live Demo
+
+[🚀 Click Here to Try the Simulator](https://debaparna2004.github.io/JavaScript-Event-Loop-Simulator/)
