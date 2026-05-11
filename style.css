@@ -1,1 +1,91 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
 
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  padding: 16px;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+textarea {
+  flex: 1;
+  background: #020617;
+  color: #e2e8f0;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  resize: none;
+  font-family: monospace;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #38bdf8;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.panel {
+  display: flex;
+  gap: 10px;
+}
+
+.box {
+  flex: 1;
+  background: #020617;
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+}
+
+.box h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.item {
+  background: #38bdf8;
+  color: black;
+  padding: 5px 8px;
+  border-radius: 6px;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.output {
+  background: #020617;
+  border-radius: 10px;
+  padding: 10px;
+  height: 120px;
+  overflow-y: auto;
+  font-family: monospace;
+}
