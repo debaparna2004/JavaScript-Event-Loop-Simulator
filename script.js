@@ -1,64 +1,140 @@
-function clearUI() {
-  document.getElementById("output").innerHTML = "";
-  document.getElementById("callStack").innerHTML = "";
-  document.getElementById("microtaskQueue").innerHTML = "";
-  document.getElementById("taskQueue").innerHTML = "";
+var steps = [];
+var currentStep = 0;
+var timer;
+
+function resetAll() {
+  clearInterval(timer);
+  steps = [];
+  currentStep = 0;
+  document.getElementById("callstack").innerHTML = "";
+  document.getElementById("microtask").innerHTML = "";
+  document.getElementById("taskqueue").innerHTML = "";
+  document.getElementById("console-output").innerHTML = "";
 }
 
-function log(msg) {
-  const out = document.getElementById("output");
-  out.innerHTML += msg + "<br>";
-}
+function renderStep(step) {
+  var cs = document.getElementById("callstack");
+  var mq = document.getElementById("microtask");
+  var tq = document.getElementById("taskqueue");
+  var co = document.getElementById("console-output");
 
-function push(container, text) {
-  const el = document.createElement("div");
-  el.className = "item";
-  el.innerText = text;
-  document.getElementById(container).appendChild(el);
-}
+  cs.innerHTML = "";
+  mq.innerHTML = "";
+  tq.innerHTML = "";
 
-function runSimulation() {
-  clearUI();
-
-  const code = document.getElementById("code").value;
-
-  // Fake event loop tracking
-  const originalLog = console.log;
-  console.log = function(msg) {
-    log(msg);
-  };
-
-  // Track call stack (very basic)
-  push("callStack", "global()");
-
-  // Monkey patch setTimeout
-  const originalSetTimeout = window.setTimeout;
-  window.setTimeout = function(cb, time) {
-    push("taskQueue", "setTimeout callback");
-    return originalSetTimeout(() => {
-      push("callStack", "task()");
-      cb();
-    }, time);
-  };
-
-  // Monkey patch Promise.then
-  const originalThen = Promise.prototype.then;
-  Promise.prototype.then = function(cb) {
-    push("microtaskQueue", "promise callback");
-    return originalThen.call(this, () => {
-      push("callStack", "microtask()");
-      cb();
-    });
-  };
-
-  try {
-    eval(code);
-  } catch (e) {
-    log("Error: " + e.message);
+  for (var i = 0; i < step.callstack.length; i++) {
+    var div = document.createElement("div");
+    div.className = "item";
+    div.innerText = step.callstack[i];
+    cs.appendChild(div);
   }
 
-  // Restore original functions so the browser doesn't break
-  console.log = originalLog;
-  window.setTimeout = originalSetTimeout;
-  Promise.prototype.then = originalThen;
+  for (var i = 0; i < step.microtask.length; i++) {
+    var div = document.createElement("div");
+    div.className = "item";
+    div.innerText = step.microtask[i];
+    mq.appendChild(div);
+  }
+
+  for (var i = 0; i < step.taskqueue.length; i++) {
+    var div = document.createElement("div");
+    div.className = "item";
+    div.innerText = step.taskqueue[i];
+    tq.appendChild(div);
+  }
+
+  if (step.log != null) {
+    var line = document.createElement("div");
+    line.innerText = "> " + step.log;
+    co.appendChild(line);
+  }
+}
+
+function buildSteps(code) {
+  var lines = code.split("\n");
+  var callstack = [];
+  var microtask = [];
+  var taskqueue = [];
+
+  function save(log) {
+    steps.push({
+      callstack: callstack.slice(),
+      microtask: microtask.slice(),
+      taskqueue: taskqueue.slice(),
+      log: log != undefined ? log : null
+    });
+  }
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (line == "" || line.startsWith("//")) continue;
+
+    if (line.startsWith("console.log")) {
+      var match = line.match(/console\.log\(["']?(.+?)["']?\)/);
+      var val = match ? match[1] : "...";
+      callstack.push("console.log(" + val + ")");
+      save(val);
+      callstack.pop();
+      save();
+
+    } else if (line.startsWith("setTimeout")) {
+      var match = line.match(/["'](.+?)["'].*?,\s*(\d+)/);
+      var label = match ? match[1] : "callback";
+      var ms = match ? match[2] : "0";
+      callstack.push("setTimeout");
+      save();
+      callstack.pop();
+      taskqueue.push("cb: " + label + " (" + ms + "ms)");
+      save();
+
+    } else if (line.startsWith("Promise.resolve")) {
+      var match = line.match(/\.then\(["'](.+?)["']/);
+      var label = match ? match[1] : "then callback";
+      callstack.push("Promise.resolve().then(...)");
+      save();
+      callstack.pop();
+      microtask.push("then: " + label);
+      save();
+
+    } else {
+      var label = line.length > 40 ? line.slice(0, 40) + "..." : line;
+      callstack.push(label);
+      save();
+      callstack.pop();
+      save();
+    }
+  }
+
+  while (microtask.length > 0) {
+    var fn = microtask.shift();
+    callstack.push(fn);
+    save(fn);
+    callstack.pop();
+    save();
+  }
+
+  while (taskqueue.length > 0) {
+    var fn = taskqueue.shift();
+    callstack.push(fn);
+    save(fn);
+    callstack.pop();
+    save();
+  }
+}
+
+function runCode() {
+  resetAll();
+  var code = document.getElementById("code").value;
+  if (code.trim() == "") return;
+
+  buildSteps(code);
+
+  timer = setInterval(function() {
+    if (currentStep >= steps.length) {
+      clearInterval(timer);
+      return;
+    }
+    renderStep(steps[currentStep]);
+    currentStep++;
+  }, 800);
 }
