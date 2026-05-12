@@ -1,53 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Event Loop Simulator UI</title>
-  <!-- Link to your CSS file -->
+  <title>Event Loop Visualizer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-
-    <!-- Code Editor -->
-    <div class="card">
-      <h2>Code Editor</h2>
-      <textarea id="code">console.log("Start");
-setTimeout(() => console.log("Task Queue"), 0);
-Promise.resolve().then(() => console.log("Microtask"));
-console.log("End");</textarea>
-      <button onclick="runSimulation()">Run</button>
+ 
+  <h2>JS Event Loop Visualizer</h2>
+ 
+  <textarea id="code" placeholder="Write your JS here..."></textarea>
+  <br>
+  <button onclick="runCode()">Run</button>
+  <button onclick="resetAll()">Reset</button>
+ 
+  <div class="boxes">
+    <div class="box">
+      <h3>Call Stack</h3>
+      <div id="callstack"></div>
     </div>
-
-    <!-- Output -->
-    <div class="card">
-      <h2>Console Output</h2>
-      <div id="output" class="output"></div>
+    <div class="box">
+      <h3>Microtask Queue</h3>
+      <div id="microtask"></div>
     </div>
-
-    <!-- Event Loop Visuals -->
-    <div class="card">
-      <h2>Event Loop</h2>
-      <div class="panel">
-        <div class="box">
-          <h3>Call Stack</h3>
-          <div id="callStack"></div>
-        </div>
-        <div class="box">
-          <h3>Microtask Queue</h3>
-          <div id="microtaskQueue"></div>
-        </div>
-        <div class="box">
-          <h3>Task Queue</h3>
-          <div id="taskQueue"></div>
-        </div>
-      </div>
+    <div class="box">
+      <h3>Task Queue</h3>
+      <div id="taskqueue"></div>
     </div>
-
   </div>
-
-  <!-- Link to your JavaScript file -->
+ 
+  <div id="console-box">
+    <h3>Console</h3>
+    <div id="console-output"></div>
+  </div>
+ 
   <script src="script.js"></script>
 </body>
 </html>
